@@ -451,7 +451,27 @@ static void a2d_app_heart_beat(void *arg)
 
 static void handle_external_action(void *arg)
 {
-    static int target_num = 0;
+    //static int run_num = 0;
+    //run_num++;
+    //ESP_LOGI(APP_MAIN_TAG, "### run_num: %d", run_num);
+    int target_num = 0;
+    if(is_wait_stop){
+        if(s_media_state == APP_AV_MEDIA_STATE_IDLE){
+            is_wait_stop = false;
+            if(target_num > 0){
+                ifs.reset(new std::ifstream("/spiffs/decision24.wav", std::ios::binary));
+            }else{
+                ifs.reset(new std::ifstream("/spiffs/incorrect2.wav", std::ios::binary));
+            }
+            ifs->clear();
+            ifs->seekg(44);
+            ESP_LOGI(BT_AV_TAG, "a2dp media ready checking ...");
+            esp_a2d_media_ctrl(ESP_A2D_MEDIA_CTRL_CHECK_SRC_RDY);
+            TimerHandle_t timer_h2 = xTimerCreate("oneShotTmr2", (2000 / portTICK_RATE_MS),
+                                    pdFALSE, 0, stop_play);
+            xTimerStart(timer_h2, portMAX_DELAY);
+        }
+    }
     if(bullet_num <= 0){
         return;
     }
@@ -478,23 +498,7 @@ static void handle_external_action(void *arg)
             is_wait_stop = true;
         }
     }
-    if(is_wait_stop){
-        if(s_media_state == APP_AV_MEDIA_STATE_IDLE){
-            is_wait_stop = false;
-            if(target_num > 0){
-                ifs.reset(new std::ifstream("/spiffs/decision24.wav", std::ios::binary));
-            }else{
-                ifs.reset(new std::ifstream("/spiffs/incorrect2.wav", std::ios::binary));
-            }
-            ifs->clear();
-            ifs->seekg(44);
-            ESP_LOGI(BT_AV_TAG, "a2dp media ready checking ...");
-            esp_a2d_media_ctrl(ESP_A2D_MEDIA_CTRL_CHECK_SRC_RDY);
-            TimerHandle_t timer_h2 = xTimerCreate("oneShotTmr2", (2000 / portTICK_RATE_MS),
-                                    pdFALSE, 0, stop_play);
-            xTimerStart(timer_h2, portMAX_DELAY);
-        }
-    }
+    //run_num--;
 }
 
 static void stop_play(void *arg)

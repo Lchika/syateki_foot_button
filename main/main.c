@@ -80,6 +80,7 @@ void i2sInit()
 void stickc_test_task()
 {
     int bt_state_pre = -1;
+    int count = 0;
     while (true)
     {
         if (button_a_flag)
@@ -139,6 +140,16 @@ void stickc_test_task()
             TFT_print(state_buf, CENTER, 40);
             bt_state_pre = bt_state;
         }
+        if(count % 50 == 0){
+            float bat_voltage = AXP192GetBatVoltage(&wire0);
+            float bat_current = AXP192GetBatCurrent(&wire0);
+            char axp_buf[64];
+            TFT_print("                                                ", 0, 50);
+            sprintf(axp_buf, "bv:%.1fV bc:%.1fmA", bat_voltage, bat_current);
+            TFT_print(axp_buf, 0, 50);
+            count = 0;
+        }
+        count++;
         vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
